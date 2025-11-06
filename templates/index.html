@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Movie Recommendation System</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+
+    <!-- Floating Navbar -->
+    <div class="glass-nav">
+        <div class="brand">🎬 Reco</div>
+        <div class="spacer"></div>
+        <a class="nav-link" href="https://github.com/RobinSidhu27/MovieRecommendationSystem" target="_blank">GitHub</a>
+    </div>
+    
+    <div class="container">
+        <h2>Movie Recommendation System</h2>
+        <p>Enter a movie title to get recommendations.</p>
+
+        <input id="movie" type="text" placeholder="Enter movie name">
+        <div id="suggestions" class="suggestions"></div>
+
+        <button onclick="getRecs()">Get Recommendations</button>
+
+        <div id="results"></div>
+    </div>
+
+    <script>
+        let movieList = [];
+
+        // Load movie titles once
+        async function loadMovies() {
+            const res = await fetch("/movies");
+            movieList = await res.json();
+        }
+        loadMovies();
+
+        const input = document.getElementById("movie");
+        const suggestionsBox = document.getElementById("suggestions");
+
+        // Autocomplete listener
+        input.addEventListener("input", () => {
+            const query = input.value.toLowerCase();
+            if (!query) {
+                suggestionsBox.innerHTML = "";
+                return;
+            }
+
+            const matches = movieList
+                .filter(title => title.toLowerCase().startsWith(query))
+                .slice(0, 6);
+
+            suggestionsBox.innerHTML = matches
+                .map(m => `<div class="suggestion-item" onclick="selectSuggestion('${m}')">${m}</div>`)
+                .join("");
+        });
+
+        function selectSuggestion(title) {
+            input.value = title;
+            suggestionsBox.innerHTML = "";
+        }
+
+        // Main Recommendation Function
+        async function getRecs() {
+            const movie = document.getElementById("movie").value.trim();
+            const resultsBox = document.getElementById("results");
+
+            // Show skeletons
+            resultsBox.innerHTML = `
+                <div class="skeleton-card"></div>
+                <div class="skeleton-card"></div>
+                <div class="skeleton-card"></div>
+            `;
+
+            const res = await fetch("/recommend", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({ movie })
+            });
+
+            const data = await res.json();
+
+            // Show error if any
+            if (data.error) {
+                resultsBox.innerHTML = `
+                    <div class="error">${data.error}</div>
+                `;
+                return;
+            }
+
+            // Show results
+            resultsBox.innerHTML = data.results.map(item => `
+                <div class="movie-card">
+                    ${item.poster ? `<img src="${item.poster}" class="poster">` : ""}
+                    <div class="info">${item.title}</div>
+                </div>
+            `).join("");
+        }
+
+        // Navbar scroll shadow
+        const nav = document.querySelector('.glass-nav');
+
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 4) {
+                nav.style.boxShadow = '0 16px 36px rgba(0,0,0,0.18), inset 0 1px 1px rgba(255,255,255,0.4)';
+            } else {
+                nav.style.boxShadow = '';
+            }
+        });
+    </script>
+
+</body>
+</html>
