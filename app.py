@@ -2,16 +2,13 @@ from flask import Flask, render_template, request, jsonify
 from src.main import recommend
 from src.data_preprocessing import load_and_clean_data
 from src.vectorization import vectorize_data
+import joblib
 
 
 app = Flask(__name__)
 
-# Load everything once when the server starts
-print("Loading data...")
-movies = load_and_clean_data()
-
-print("Vectorizing data...")
-similarity, _ = vectorize_data(movies)
+movies = joblib.load("movies.pkl")
+similarity = joblib.load("similarity.pkl")
 
 
 @app.route("/")
