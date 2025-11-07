@@ -8,7 +8,8 @@ import joblib
 app = Flask(__name__)
 
 movies = joblib.load("movies.pkl")
-similarity = joblib.load("similarity.pkl")
+from src.vectorization import vectorize_data
+similarity, _ = vectorize_data(movies)
 
 
 @app.route("/")
@@ -68,3 +69,4 @@ def get_movies():
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
 
+¸
