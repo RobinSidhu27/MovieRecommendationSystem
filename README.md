@@ -70,6 +70,7 @@ This version is optimized for **Render free tier**, using **on-demand similarity
 ```python
 tfidf = TfidfVectorizer(stop_words='english', max_features=10000)
 vectors = tfidf.fit_transform(movies['tags'])
+```
 
 ### 3. On-Demand Recommendations
 
@@ -106,11 +107,11 @@ https://www.kaggle.com/datasets/tmdb/tmdb-movie-metadata
 - Theme personalization
 - Docker deployment + CI/CD pipeline
 
-###✅ Author
+### ✅ Author
 Shehbaz Singh Sidhu
 B.E. Computer Engineering
 Thapar Institute of Engineering and Technology
 
-###✅ License
+### ✅ License
 MIT License
 Feel free to use, modify, and share.
