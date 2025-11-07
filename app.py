@@ -1,23 +1,23 @@
 from flask import Flask, render_template, request, jsonify
+import joblib
 from src.vectorization import vectorize_data
 from src.main import recommend
-import joblib
 
 app = Flask(__name__)
 
 # -----------------------------
-# Load precomputed movies dataframe
+# Load precomputed movies data
 # -----------------------------
 print("Loading movies.pkl...")
 movies = joblib.load("movies.pkl")
 
 # -----------------------------
-# Compute similarity (safe for Render)
+# Build TF-IDF matrix only (lightweight)
 # -----------------------------
-print("Generating similarity matrix...")
-similarity, _ = vectorize_data(movies)
+print("Vectorizing tags...")
+vectors, vectorizer = vectorize_data(movies)
 
-print("✅ Server ready.")
+print("✅ Backend ready.")
 
 
 @app.route("/")
@@ -33,23 +33,22 @@ def get_recommendations():
     if not movie:
         return jsonify({"error": "Please enter a movie name.", "results": []})
 
-    # Validate movie name
     titles_lower = movies['title'].str.lower().tolist()
     if movie.lower() not in titles_lower:
         return jsonify({"error": f"No movie found with the name '{movie}'.", "results": []})
 
     try:
-        result_titles = recommend(movie, movies, similarity)
+        rec_titles = recommend(movie, movies, vectors)
         results = []
 
-        for title in result_titles:
+        for title in rec_titles:
             idx = movies[movies['title'] == title].index[0]
 
             poster = None
             if "poster_path" in movies.columns:
-                path = movies.iloc[idx]["poster_path"]
-                if isinstance(path, str) and path.strip():
-                    poster = f"https://image.tmdb.org/t/p/w500{path}"
+                raw = movies.iloc[idx].get("poster_path", None)
+                if isinstance(raw, str) and raw.strip():
+                    poster = f"https://image.tmdb.org/t/p/w500{raw}"
 
             results.append({
                 "title": title,

@@ -1,25 +1,20 @@
-# src/main.py
-from src.data_preprocessing import load_and_clean_data
-from src.vectorization import vectorize_data
-import numpy as np
+from sklearn.metrics.pairwise import cosine_similarity
 
-def recommend(movie_name, movies, similarity):
+def recommend(movie_name, movies, vectors):
+    # Get index of movie
     movie_index = movies[movies['title'].str.lower() == movie_name.lower()].index[0]
-    distances = similarity[movie_index]
-    movie_list = sorted(list(enumerate(distances)), reverse=True, key=lambda x: x[1])[1:6]
-    
-    recommendations = [movies.iloc[i[0]].title for i in movie_list]
-    return recommendations
 
+    # Vector for this movie
+    movie_vector = vectors[movie_index]
 
-def main():
-    print("Loading data...")
-    movies = load_and_clean_data()
-    print("Vectorizing data...")
-    similarity, _ = vectorize_data(movies)
+    # Compute similarity ON DEMAND
+    similarity_scores = cosine_similarity(movie_vector, vectors).flatten()
 
-    movie_name = input("Enter a movie name: ")
-    recommend(movie_name, movies, similarity)
+    # Sort and pick top 5 recommendations
+    movie_list = sorted(
+        list(enumerate(similarity_scores)),
+        key=lambda x: x[1],
+        reverse=True
+    )[1:6]
 
-if __name__ == "__main__":
-    main()
+    return [movies.iloc[i[0]].title for i in movie_list]
